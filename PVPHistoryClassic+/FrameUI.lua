@@ -116,6 +116,7 @@ local function GenericSort(a, b, key, isNumeric)
         end
     end
 end
+
 local function SortByOutCome(a, b)
     if not a or not b then
         return false
@@ -209,22 +210,22 @@ local function CreateFactionDropdown(baseFrame)
 
 end
 
-local width = 110
+local width = 150
 local smallWidth = 70
 
 local dateHeader = CreateTableHeader(frame, 120, 20, "Date", "TOPLEFT", frame, "TOPLEFT", 5, -30)
-local nameHeader = CreateTableHeader(frame, width, 20, "Zone", "LEFT", dateHeader, "RIGHT", 10, 0)
-local killsHeader = CreateTableHeader(frame, smallWidth, 20, "Kills", "LEFT", nameHeader, "RIGHT", 5, 0)
-local hkHeader = CreateTableHeader(frame, smallWidth, 20, "HKs", "LEFT", killsHeader, "RIGHT", 0, 0)
-local deathsHeader = CreateTableHeader(frame, smallWidth, 20, "Deaths", "LEFT", hkHeader, "RIGHT", 0, 0)
-local honorHeader = CreateTableHeader(frame, smallWidth + 5, 20, "Honour", "LEFT", deathsHeader, "RIGHT", 0, 0)
-local durationHeader = CreateTableHeader(frame, width - 8, 20, "Duration", "LEFT", honorHeader, "RIGHT", 0, 0)
-local outcomeHeader = CreateTableHeader(frame, width, 20, "Outcome", "LEFT", durationHeader, "RIGHT", 0, 0)
+local nameHeader = CreateTableHeader(frame, 100, 20, "Zone", "LEFT", dateHeader, "RIGHT", 5, 0)  -- Reduced width and spacing
+local killsHeader = CreateTableHeader(frame, 50, 20, "Kills", "LEFT", nameHeader, "RIGHT", 5, 0)  -- Reduced width and spacing
+local hkHeader = CreateTableHeader(frame, 50, 20, "HKs", "LEFT", killsHeader, "RIGHT", 5, 0)  -- Reduced width and spacing
+local deathsHeader = CreateTableHeader(frame, 50, 20, "Deaths", "LEFT", hkHeader, "RIGHT", 5, 0)  -- Reduced width and spacing
+local damageHeader = CreateTableHeader(frame, 70, 20, "Damage", "LEFT", deathsHeader, "RIGHT", 5, 0)  -- Reduced width and spacing
+local honorHeader = CreateTableHeader(frame, 60, 20, "Honour", "LEFT", damageHeader, "RIGHT", 5, 0)  -- Reduced width and spacing
+local durationHeader = CreateTableHeader(frame, 80, 20, "Duration", "LEFT", honorHeader, "RIGHT", 5, 0)  -- Reduced width and spacing
+local outcomeHeader = CreateTableHeader(frame, 80, 20, "Outcome", "LEFT", durationHeader, "RIGHT", 5, 0)  -- Reduced width and spacing
 
 
--- Update the function for hiding and showing arrows
 local function UpdateSortArrows(header)
-    for _, h in pairs({ dateHeader, nameHeader, killsHeader, deathsHeader, hkHeader, honorHeader, durationHeader, outcomeHeader }) do
+    for _, h in pairs({ dateHeader, nameHeader, killsHeader, deathsHeader, damageHeader, hkHeader, honorHeader, durationHeader, outcomeHeader }) do
         h.arrow:Hide()
     end
     header.arrow:Show()
@@ -243,10 +244,12 @@ local function AddSortingFunctions(baseFrame)
         end)
         FRAME_UI.UpdateBattlegroundHistoryFrame(baseFrame)
     end
+
     hkHeader:SetScript("OnClick", function()
         SortData("honorableKills", true)
         UpdateSortArrows(hkHeader)
     end)
+
     honorHeader:SetScript("OnClick", function()
         SortData("honorGained", true)
         UpdateSortArrows(honorHeader)
@@ -263,7 +266,7 @@ local function AddSortingFunctions(baseFrame)
     end)
 
     killsHeader:SetScript("OnClick", function()
-        SortData("kills", true)
+        SortData("killingBlows", true)
         UpdateSortArrows(killsHeader)
     end)
 
@@ -272,13 +275,17 @@ local function AddSortingFunctions(baseFrame)
         UpdateSortArrows(deathsHeader)
     end)
 
+    damageHeader:SetScript("OnClick", function()
+        SortData("damageDone", true)
+        UpdateSortArrows(damageHeader)
+    end)
+
     durationHeader:SetScript("OnClick", function()
         SortData("duration", true)
         UpdateSortArrows(durationHeader)
     end)
 
     outcomeHeader:SetScript("OnClick", function()
-        -- Assuming outcome sorting is special and uses SortByOutCome
         SORT_DIRECTION = SORT_DIRECTION == "ASC" and "DESC" or "ASC"
         table.sort(PVP_HISTORY, SortByOutCome)
         UpdateSortArrows(outcomeHeader)
@@ -441,6 +448,7 @@ local function UpdateTabVisibility(selectedTab, bgFrame)
     nameHeader:SetShown(isHistoryTab)
     killsHeader:SetShown(isHistoryTab)
     deathsHeader:SetShown(isHistoryTab)
+    damageHeader:SetShown(isHistoryTab)
     durationHeader:SetShown(isHistoryTab)
     outcomeHeader:SetShown(isHistoryTab)
     hkHeader:SetShown(isHistoryTab)
@@ -515,47 +523,50 @@ function FRAME_UI.UpdateBattlegroundHistoryFrame(battleGroundFrame)
         battleGroundFrame.rows = {}
 
         local rowHeight = 20
-        local smallWidth = 70
         local i = 1
         for _, bg in ipairs(PVP_HISTORY) do
             if FILTER.IsAccepted(bg) then
                 local row = CreateFrame("Frame", nil, battleGroundFrame.scrollChild)
-                row:SetSize(755, rowHeight)
+                row:SetSize(755, rowHeight)  -- Adjusted width to match the backdrop
                 row:SetPoint("TOPLEFT", 10, -(i - 1) * rowHeight)
                 battleGroundFrame.rows[i] = row
 
                 -- Create text elements for each column in the row
                 row.startTime = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
                 row.startTime:SetPoint("LEFT", 0, 0)
-                row.startTime:SetSize(120, rowHeight)
+                row.startTime:SetSize(120, rowHeight)  -- Match header width
 
                 row.name = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                row.name:SetPoint("LEFT", row.startTime, "RIGHT", 0, 0)
-                row.name:SetSize(110, rowHeight)
+                row.name:SetPoint("LEFT", row.startTime, "RIGHT", 5, 0)
+                row.name:SetSize(100, rowHeight)  -- Match header width
 
                 row.kills = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                row.kills:SetPoint("LEFT", row.name, "RIGHT", 0, 0)
-                row.kills:SetSize(smallWidth, rowHeight)
+                row.kills:SetPoint("LEFT", row.name, "RIGHT", 5, 0)
+                row.kills:SetSize(50, rowHeight)  -- Match header width
 
                 row.honorableKills = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                row.honorableKills:SetPoint("LEFT", row.kills, "RIGHT", 0, 0)
-                row.honorableKills:SetSize(smallWidth, rowHeight)
+                row.honorableKills:SetPoint("LEFT", row.kills, "RIGHT", 5, 0)
+                row.honorableKills:SetSize(50, rowHeight)  -- Match header width
 
                 row.deaths = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                row.deaths:SetPoint("LEFT", row.honorableKills, "RIGHT", 0, 0)
-                row.deaths:SetSize(smallWidth, rowHeight)
+                row.deaths:SetPoint("LEFT", row.honorableKills, "RIGHT", 5, 0)
+                row.deaths:SetSize(50, rowHeight)  -- Match header width
+
+                row.damageDone = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+                row.damageDone:SetPoint("LEFT", row.deaths, "RIGHT", 5, 0)
+                row.damageDone:SetSize(70, rowHeight)  -- Match header width
 
                 row.honorGained = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                row.honorGained:SetPoint("LEFT", row.deaths, "RIGHT", 0, 0)
-                row.honorGained:SetSize(smallWidth + 5, rowHeight)
+                row.honorGained:SetPoint("LEFT", row.damageDone, "RIGHT", 5, 0)
+                row.honorGained:SetSize(60, rowHeight)  -- Match header width
 
                 row.duration = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                row.duration:SetPoint("LEFT", row.honorGained, "RIGHT", 0, 0)
-                row.duration:SetSize(102, rowHeight)
+                row.duration:SetPoint("LEFT", row.honorGained, "RIGHT", 5, 0)
+                row.duration:SetSize(80, rowHeight)  -- Match header width
 
                 row.outcome = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                row.outcome:SetPoint("LEFT", row.duration, "RIGHT", 0, 0)
-                row.outcome:SetSize(110, rowHeight)
+                row.outcome:SetPoint("LEFT", row.duration, "RIGHT", 5, 0)
+                row.outcome:SetSize(80, rowHeight)  -- Match header width
 
                 -- Set text for each column
                 row.startTime:SetText(bg.date)
@@ -566,6 +577,7 @@ function FRAME_UI.UpdateBattlegroundHistoryFrame(battleGroundFrame)
                 row.outcome:SetText(bg.outcome)
                 row.honorableKills:SetText(bg.honorableKills or "")
                 row.honorGained:SetText(bg.honorGained or "")
+                row.damageDone:SetText(bg.damageDone or 0)
 
                 -- Color coding for outcome
                 if bg.outcome == "Victory" then
@@ -575,6 +587,7 @@ function FRAME_UI.UpdateBattlegroundHistoryFrame(battleGroundFrame)
                 else
                     row.outcome:SetTextColor(1, 1, 1)  -- Default color
                 end
+
                 row:Show()
                 i = i + 1
             end
