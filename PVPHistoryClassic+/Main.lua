@@ -41,5 +41,5 @@ end)
 
 
 -- Add a slash command to toggle the battleground history mainFrame
-SLASH_PVPHISTORY1 = "/pvphistory"
+SLASH_PVPHISTORY1 = "/ph"
 SlashCmdList["PVPHISTORY"] = PVP_TRACKER.ToggleBattlegroundHistory
