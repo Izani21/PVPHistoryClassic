@@ -3,6 +3,14 @@ PVP_HISTORY = PVP_HISTORY or {}
 PVP_TRACKER = {}
 PVP_TRACKER.PLAYER_FACTION_STRING = UnitFactionGroup("player")
 
+local frame = CreateFrame("Frame")
+frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+frame:SetScript("OnEvent", function(self, event, ...)
+    if event == "COMBAT_LOG_EVENT_UNFILTERED" then
+        PVP_TRACKER.OnCombatLogEventUnfiltered()
+    end
+end)
+
 function AccumulateUniquePlayerNames()
     local uniquePlayerNames = {}
     local playerNameSet = {}
@@ -54,8 +62,17 @@ local function SaveTeamComposition()
 end
 
 function PVP_TRACKER.OnCombatLogEventUnfiltered()
-    -- Logic to detect honor kills and estimate honor gains
-    -- Update CURRENT_BATTLEGROUND.honorGained
+    local timestamp, event, _, sourceGUID, sourceName, _, _, destGUID, destName, _, _, spellId, spellName, _, amount = CombatLogGetCurrentEventInfo()
+
+    -- Check if the source is the player
+    if sourceName == UnitName("player") then
+        if event == "SPELL_DAMAGE" or event == "RANGE_DAMAGE" or event == "SWING_DAMAGE" then
+            -- Add the damage amount to the total damage done
+            if CURRENT_BATTLEGROUND then
+                CURRENT_BATTLEGROUND.damageDone = (CURRENT_BATTLEGROUND.damageDone or 0) + (amount or 0)
+            end
+        end
+    end
 end
 
 local function StartBattleground(zoneName)
@@ -73,6 +90,7 @@ local function StartBattleground(zoneName)
         honorGained = 0,
         killingBlows = 0,
         currentRank = 0,
+        damageDone = 0,
         teamComposition = { Horde = {}, Alliance = {} },
         playerName = playerName,
         playerClass = playerClass
@@ -150,8 +168,7 @@ function PVP_TRACKER.ToggleBattlegroundHistory()
     end
 end
 
--- Add a slash command to toggle the battleground history frame
-SLASH_PVPHISTORY1 = "/pvphistory"
+SLASH_PVPHISTORY1 = "/ph"
 SlashCmdList[SLASH_PVPHISTORY1] = PVP_TRACKER.ToggleBattlegroundHistory
 
 function PVP_TRACKER.OnPlayerLogout()
@@ -160,6 +177,7 @@ function PVP_TRACKER.OnPlayerLogout()
         EndBattleground()
     end
 end
+
 function PVP_TRACKER.OnPlayerChangingZone()
     local zoneName = GetRealZoneText()
     if IsBattlegroundZone(zoneName) then
@@ -185,4 +203,3 @@ function PVP_TRACKER.OnPlayerChangingZone()
     end
     IS_FIRST_ZONE = false
 end
-
